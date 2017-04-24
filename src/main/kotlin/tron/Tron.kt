@@ -90,8 +90,8 @@ class BotPlayer : Player(randomColor()) {
             dy = if (dx != 0) 0 else ThreadLocalRandom.current().nextInt(-1, 2)
 
         }
-        x = Math.max(1, Math.min(dx + x, BOARD_WIDTH - 1))
-        y = Math.max(1, Math.min(dy + y, BOARD_WIDTH - 1))
+        x = Math.max(1, Math.min(dx + x, BOARD_WIDTH - 2))
+        y = Math.max(1, Math.min(dy + y, BOARD_WIDTH - 2))
 
         val spot = y * BOARD_WIDTH + x
         if (!spots.contains(spot)) {
@@ -117,8 +117,8 @@ fun randomColor(): Color = when (ThreadLocalRandom.current().nextInt(1, 6)) {
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
     override fun update() {
-        x = Math.max(1, Math.min(input.dx + x, BOARD_WIDTH - 1))
-        y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 1))
+        x = Math.max(1, Math.min(input.dx + x, BOARD_WIDTH - 2))
+        y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 2))
         val spot = y * BOARD_WIDTH + x
         if (!spots.contains(spot))
             spots.add(spot)
