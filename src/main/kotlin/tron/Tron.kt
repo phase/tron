@@ -12,6 +12,7 @@ import kotlin.concurrent.fixedRateTimer
 val SIZE = 795
 val BOARD_WIDTH = SIZE / 20 + 1
 var game: Game? = null
+var players = mutableListOf<Player>()
 
 fun main(args: Array<String>) {
     val frame = JFrame("it's tron")
@@ -21,19 +22,28 @@ fun main(args: Array<String>) {
     val player = UserPlayer(inputListener)
     frame.addKeyListener(inputListener)
 
-    game = Game(listOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player))
+    players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player)
+    game = Game()
 
     frame.add(game)
     frame.isVisible = true
 
     game!!.paint(game!!.graphics)
     fixedRateTimer(name = "MainThread", period = 100) {
-        game!!.players.forEach(Player::update)
+        val playersToRemove = mutableListOf<Player>()
+        players.forEach {
+            if (it.isDead)
+                playersToRemove.add(it)
+        }
+        playersToRemove.forEach {
+            players.remove(it)
+        }
+        players.forEach(Player::update)
         game!!.repaint()
     }
 }
 
-class Game(val players: List<Player>) : JComponent() {
+class Game : JComponent() {
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
@@ -70,6 +80,7 @@ class Game(val players: List<Player>) : JComponent() {
 }
 
 abstract class Player(val color: Color) {
+    var isDead = false
     var x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
     var y = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
     val spots = mutableListOf<Int>()
@@ -94,10 +105,12 @@ class BotPlayer : Player(randomColor()) {
         y = Math.max(1, Math.min(dy + y, BOARD_WIDTH - 2))
 
         val spot = y * BOARD_WIDTH + x
-        if (!spots.contains(spot)) {
-            spots.add(spot)
-        } else {
+        players.forEach {
+            if (it != this && it.spots.contains(spot))
+                isDead = true
         }
+        if (!spots.contains(spot))
+            spots.add(spot)
     }
 
     override fun draw(g: Graphics) {
@@ -120,6 +133,10 @@ class UserPlayer(val input: UserInput) : Player(Color.red) {
         x = Math.max(1, Math.min(input.dx + x, BOARD_WIDTH - 2))
         y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 2))
         val spot = y * BOARD_WIDTH + x
+        players.forEach {
+            if (it != this && it.spots.contains(spot))
+                isDead = true
+        }
         if (!spots.contains(spot))
             spots.add(spot)
     }
