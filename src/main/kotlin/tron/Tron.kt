@@ -21,14 +21,13 @@ fun main(args: Array<String>) {
     val player = UserPlayer(inputListener)
     frame.addKeyListener(inputListener)
 
-    game = Game(listOf(BotPlayer(), player))
+    game = Game(listOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player))
 
     frame.add(game)
     frame.isVisible = true
 
     game!!.paint(game!!.graphics)
-    fixedRateTimer(name = "MainThread", period = 100){
-        println("tick")
+    fixedRateTimer(name = "MainThread", period = 100) {
         game!!.players.forEach(Player::update)
         game!!.repaint()
     }
@@ -71,22 +70,22 @@ class Game(val players: List<Player>) : JComponent() {
 }
 
 abstract class Player(val color: Color) {
-    var x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 2)
-    var y = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 2)
+    var x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
+    var y = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
     val spots = mutableListOf<Int>()
 
     abstract fun update()
     abstract fun draw(g: Graphics)
 }
 
-class BotPlayer : Player(Color.orange) {
+class BotPlayer : Player(randomColor()) {
     var dx = 0
     var dy = -1
     var tick = 0
 
     override fun update() {
         tick++
-        if (tick % 3 == 0) {
+        if (tick % ThreadLocalRandom.current().nextInt(3, 6) == 0) {
             dx = ThreadLocalRandom.current().nextInt(-1, 2)
             dy = if (dx != 0) 0 else ThreadLocalRandom.current().nextInt(-1, 2)
 
@@ -108,7 +107,7 @@ class BotPlayer : Player(Color.orange) {
 }
 
 fun randomColor(): Color = when (ThreadLocalRandom.current().nextInt(1, 6)) {
-    1 -> Color.red
+    1 -> Color.cyan
     2 -> Color.blue
     3 -> Color.green
     4 -> Color.magenta
@@ -116,10 +115,10 @@ fun randomColor(): Color = when (ThreadLocalRandom.current().nextInt(1, 6)) {
     else -> Color.cyan
 }
 
-class UserPlayer(val input: UserInput) : Player(randomColor()) {
+class UserPlayer(val input: UserInput) : Player(Color.red) {
     override fun update() {
-        x += input.dx
-        y += input.dy
+        x = Math.max(1, Math.min(input.dx + x, BOARD_WIDTH - 1))
+        y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 1))
         val spot = y * BOARD_WIDTH + x
         if (!spots.contains(spot))
             spots.add(spot)
@@ -129,8 +128,6 @@ class UserPlayer(val input: UserInput) : Player(randomColor()) {
         g.color = color.darker()
         g.drawRoundRect(x * 20 - 6 - 3, y * 20 - 6, 6 * 2, 6 * 2, 7, 5)
     }
-
-
 }
 
 class UserInput : KeyListener {
