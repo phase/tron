@@ -5,6 +5,7 @@ import java.awt.Graphics
 import java.util.concurrent.ThreadLocalRandom
 import javax.swing.JComponent
 import javax.swing.JFrame
+import kotlin.concurrent.fixedRateTimer
 
 val SIZE = 795
 val BOARD_WIDTH = SIZE / 20 + 1
@@ -20,11 +21,11 @@ fun main(args: Array<String>) {
     frame.add(game)
     frame.isVisible = true
 
-    while (true) {
+    game!!.paint(game!!.graphics)
+    fixedRateTimer(name = "MainThread", period = 100){
         println("tick")
         game!!.players.forEach(Player::update)
-        game!!.paint(game!!.graphics)
-        Thread.sleep(100)
+        game!!.repaint()
     }
 }
 
