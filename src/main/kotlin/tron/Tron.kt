@@ -22,8 +22,9 @@ fun main(args: Array<String>) {
     val player = UserPlayer(inputListener)
     frame.addKeyListener(inputListener)
 
-    //players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player)
-    players = mutableListOf(BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f))
+    for (i in 1..6) {
+        players.add(BotPlayer(1.0f))
+    }
     game = StartScreen()
 
     frame.add(game)
