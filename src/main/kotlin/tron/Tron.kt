@@ -22,47 +22,70 @@ fun main(args: Array<String>) {
     val player = UserPlayer(inputListener)
     frame.addKeyListener(inputListener)
 
-    players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player)
-    game = Game()
+    //players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player)
+    players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer())
+    game = StartScreen()
 
     frame.add(game)
     frame.isVisible = true
-
-    try{
-        game!!.paint(game!!.graphics)
-    } finally{
-            fixedRateTimer(name = "MainThread", period = 100) {
-            val playersToRemove = mutableListOf<Player>()
-            players.forEach {
-                if (it.isDead)
-                    playersToRemove.add(it)
-            }
-            playersToRemove.forEach {
-                players.remove(it)
-            }
-            players.forEach(Player::update)
-            game!!.repaint()
-        }
+    game!!.paint(game!!.graphics)
+    fixedRateTimer(name = "MainThread", period = 100) {
+        refreshPlayers()
+        if (players.size == 1)
+            players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer())
     }
 }
 
-class Game : JComponent() {
+fun refreshPlayers(){
+    val playersToRemove = mutableListOf<Player>()
+    players.forEach {
+        if (it.isDead)
+            playersToRemove.add(it)
+    }
+    playersToRemove.forEach {
+        players.remove(it)
+    }
+    players.forEach(Player::update)
+    game!!.repaint()
+}
+
+class StartScreen : Game() {
+
+    override fun paintComponent(g: Graphics) {
+        //super.backColor = Color.black
+        super.paintComponent(g)
+    }
+
+    override fun drawBackground(g: Graphics) {
+        super.drawBackground(g)
+        /*g.color = Color.black
+        g.fillRect(0, 0, size.width, size.height)*/
+    }
+
+}
+
+abstract class Game : JComponent() {
+    var backColor = Color.black
+    var lineColor = Color.lightGray
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         drawBackground(g)
+        drawTails(g)
         players.forEach { it.draw(g) }
     }
 
-    fun drawBackground(g: Graphics) {
-        g.color = Color.black
+    open fun drawBackground(g: Graphics) {
+        g.color = backColor
         g.fillRect(0, 0, size.width, size.height)
         (0..BOARD_WIDTH).forEach {
             val p = it * 20 - 1
-            g.color = Color.lightGray
+            g.color = lineColor
             g.drawLine(p, 0, p, SIZE)
             g.drawLine(0, p, SIZE, p)
         }
+    }
+    open fun drawTails(g: Graphics){
         (0..BOARD_WIDTH).forEach {
             val px = it * 20 - 1
             val x = it
@@ -79,7 +102,6 @@ class Game : JComponent() {
             }
         }
     }
-
 }
 
 abstract class Player(val color: Color) {
