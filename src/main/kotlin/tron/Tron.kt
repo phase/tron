@@ -56,12 +56,12 @@ class StartScreen : Game() {
         super.backColor = Color.black
         super.lineColor = Color(211,211,211)
         super.paintComponent(g)
+        g.color = Color.white
+        g.fillRect((size.width / 12), (size.height / 6), ((5 * size.width) /6), ((2 * size.height) / 3))
     }
 
     override fun drawBackground(g: Graphics) {
         super.drawBackground(g)
-        /*g.color = Color.black
-        g.fillRect(0, 0, size.width, size.height)*/
     }
 
 }
