@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
     frame.addKeyListener(inputListener)
 
     //players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), player)
-    players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer())
+    players = mutableListOf(BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f))
     game = StartScreen()
 
     frame.add(game)
@@ -32,7 +32,7 @@ fun main(args: Array<String>) {
     fixedRateTimer(name = "MainThread", period = 100) {
         refreshPlayers()
         if (players.size == 1)
-            players = mutableListOf(BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer(), BotPlayer())
+            players = mutableListOf(BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f))
     }
 }
 
@@ -52,7 +52,8 @@ fun refreshPlayers(){
 class StartScreen : Game() {
 
     override fun paintComponent(g: Graphics) {
-        //super.backColor = Color.black
+        super.backColor = Color.black
+        super.lineColor = Color(211,211,211)
         super.paintComponent(g)
     }
 
@@ -114,7 +115,7 @@ abstract class Player(val color: Color) {
     abstract fun draw(g: Graphics)
 }
 
-class BotPlayer : Player(randomColor()) {
+class BotPlayer(a: Float) : Player(randomColor(a)) {
     var dx = 0
     var dy = -1
     var tick = 0
@@ -144,11 +145,11 @@ class BotPlayer : Player(randomColor()) {
     }
 }
 
-fun randomColor(): Color {
-    val r = ThreadLocalRandom.current().nextInt(50, 255)
-    val g = ThreadLocalRandom.current().nextInt(50, 255)
-    val b = ThreadLocalRandom.current().nextInt(50, 255)
-    return Color(r, g, b)
+fun randomColor(a: Float): Color {
+    val r = ThreadLocalRandom.current().nextFloat()
+    val g = ThreadLocalRandom.current().nextFloat()
+    val b = ThreadLocalRandom.current().nextFloat()
+    return Color(r, g, b, a)
 }
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
