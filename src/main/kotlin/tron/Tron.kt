@@ -122,13 +122,11 @@ class BotPlayer : Player(randomColor()) {
     }
 }
 
-fun randomColor(): Color = when (ThreadLocalRandom.current().nextInt(1, 6)) {
-    1 -> Color.cyan
-    2 -> Color.blue
-    3 -> Color.green
-    4 -> Color.magenta
-    5 -> Color.pink
-    else -> Color.cyan
+fun randomColor(): Color {
+    val r = ThreadLocalRandom.current().nextInt(50, 255)
+    val g = ThreadLocalRandom.current().nextInt(50, 255)
+    val b = ThreadLocalRandom.current().nextInt(50, 255)
+    return Color(r, g, b)
 }
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
