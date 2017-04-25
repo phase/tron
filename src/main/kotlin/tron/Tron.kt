@@ -28,18 +28,21 @@ fun main(args: Array<String>) {
     frame.add(game)
     frame.isVisible = true
 
-    game!!.paint(game!!.graphics)
-    fixedRateTimer(name = "MainThread", period = 100) {
-        val playersToRemove = mutableListOf<Player>()
-        players.forEach {
-            if (it.isDead)
-                playersToRemove.add(it)
+    try{
+        game!!.paint(game!!.graphics)
+    } finally{
+            fixedRateTimer(name = "MainThread", period = 100) {
+            val playersToRemove = mutableListOf<Player>()
+            players.forEach {
+                if (it.isDead)
+                    playersToRemove.add(it)
+            }
+            playersToRemove.forEach {
+                players.remove(it)
+            }
+            players.forEach(Player::update)
+            game!!.repaint()
         }
-        playersToRemove.forEach {
-            players.remove(it)
-        }
-        players.forEach(Player::update)
-        game!!.repaint()
     }
 }
 
