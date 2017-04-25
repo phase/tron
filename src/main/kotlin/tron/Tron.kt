@@ -1,6 +1,7 @@
 package tron
 
 import java.awt.Color
+import java.awt.Font
 import java.awt.Graphics
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
@@ -23,7 +24,7 @@ fun main(args: Array<String>) {
     frame.addKeyListener(inputListener)
 
     for (i in 1..6) {
-        players.add(BotPlayer(1.0f))
+        players.add(BotPlayer())
     }
     game = StartScreen()
 
@@ -32,8 +33,11 @@ fun main(args: Array<String>) {
     game!!.paint(game!!.graphics)
     fixedRateTimer(name = "MainThread", period = 100) {
         refreshPlayers()
-        if (players.size == 1)
-            players = mutableListOf(BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f), BotPlayer(0.65f))
+        if (players.size == 1){
+            for (i in 1..6) {
+                players.add(BotPlayer())
+            }
+        }
     }
 }
 
@@ -58,6 +62,12 @@ class StartScreen : Game() {
         super.paintComponent(g)
         g.color = Color.white
         g.fillRect((size.width / 12), (size.height / 6), ((5 * size.width) /6), ((2 * size.height) / 3))
+        g.color = Color.black
+        g.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 200)
+        g.drawString("TRON", (size.width / 9), (size.height / 2))
+        g.font = Font("Lucidia Console", Font.PLAIN, 30)
+        g.drawString("Jadon Fowler", (size.width / 6), (size.height / 2) + 35)
+        g.drawString("Matthew Ormson", (size.width / 6), (size.height / 2) + 70)
     }
 
     override fun drawBackground(g: Graphics) {
@@ -116,7 +126,7 @@ abstract class Player(val color: Color) {
     abstract fun draw(g: Graphics)
 }
 
-class BotPlayer(a: Float) : Player(randomColor(a)) {
+class BotPlayer : Player(randomColor()) {
     var dx = 0
     var dy = -1
     var tick = 0
@@ -146,11 +156,11 @@ class BotPlayer(a: Float) : Player(randomColor(a)) {
     }
 }
 
-fun randomColor(a: Float): Color {
+fun randomColor(): Color {
     val r = ThreadLocalRandom.current().nextFloat()
     val g = ThreadLocalRandom.current().nextFloat()
     val b = ThreadLocalRandom.current().nextFloat()
-    return Color(r, g, b, a)
+    return Color(r, g, b)
 }
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
