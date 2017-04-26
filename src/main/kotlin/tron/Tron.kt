@@ -3,9 +3,12 @@ package tron
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.util.concurrent.ThreadLocalRandom
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JFrame
 import kotlin.concurrent.fixedRateTimer
@@ -14,22 +17,44 @@ val SIZE = 795
 val BOARD_WIDTH = SIZE / 20 + 1
 var game: Game? = null
 var players = mutableListOf<Player>()
+val start: JButton? = JButton("Begin")
 
 fun main(args: Array<String>) {
     val frame = JFrame("it's tron")
-    frame.setSize(SIZE, SIZE)
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     val inputListener = UserInput()
     val player = UserPlayer(inputListener)
+    start!!.setBounds(525,525,150,75)
+    start.background = Color.black
+    start.foreground = Color.white
+    start.isFocusPainted = false
+    start.isFocusable = false
+    start.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 32)
+    start.isVisible = true
+    start.addActionListener{ _:ActionEvent ->
+        game!!.state = Game.State.PLAYING
+        player.isDead = false
+        player.spots.clear()
+        player.x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
+        player.y = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
+        players.clear()
+        for (i in 1..8) {
+            players.add(BotPlayer())
+        }
+        players.add(player)
+        start.isVisible = false
+    }
+    frame.setSize(SIZE, SIZE)
+    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     frame.addKeyListener(inputListener)
 
     for (i in 1..8) {
         players.add(BotPlayer())
     }
-    players.add(player)
     game = Game(player)
 
+    frame.add(start)
     frame.add(game)
+
     frame.isVisible = true
     game!!.paint(game!!.graphics)
     fixedRateTimer(name = "MainThread", period = 100) {
@@ -38,7 +63,7 @@ fun main(args: Array<String>) {
             game!!.state = Game.State.GAME_OVER
             players = mutableListOf()
             (1..8).forEach {
-                players.add(BotPlayer(0.65f))
+                players.add(BotPlayer())
             }
         }
         refreshPlayers()
@@ -62,28 +87,45 @@ fun refreshPlayers() {
 class Game(val mainPlayer: Player) : JComponent() {
     enum class State {
         PLAYING,
-        GAME_OVER
+        GAME_OVER,
+        START
     }
 
     var backColor = Color.black
     var lineColor = Color.lightGray
-    var state = State.PLAYING
+    var state = State.START
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         drawBackground(g)
         drawTails(g)
+        players.forEach { it.draw(g) }
         if (state == State.PLAYING) {
             g.color = Color.white
             g.font = Font(null, 0, 10)
             g.drawString("Score: ${mainPlayer.score}", 15, 18)
-        } else {
-            g.color = Color.white
+        } else if (state == State.GAME_OVER){
+            drawTitle(g)
+            g.color = Color.red
             g.font = Font(null, 0, 50)
-            g.drawString("GAME OVER", 50, 50)
-            g.drawString("Score: ${mainPlayer.score}", 100, 100)
+            g.drawString("GAME OVER", 125, 550)
+            g.drawString("Score: ${mainPlayer.score}", 175, 600)
+            start!!.isVisible = true
+            start.text = "Restart"
+        } else if (state == State.START){
+            drawTitle(g)
         }
-        players.forEach { it.draw(g) }
+    }
+
+    fun drawTitle(g: Graphics){
+        g.color = Color.white
+        g.fillRect((size.width / 12), (size.height / 6), ((5 * size.width) /6), ((2 * size.height) / 3))
+        g.color = Color.black
+        g.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 200)
+        g.drawString("TRON", (size.width / 9), (size.height / 2))
+        g.font = Font("Lucidia Console", Font.PLAIN, 30)
+        g.drawString("Jadon Fowler", (size.width / 6), (size.height / 2) + 35)
+        g.drawString("Matthew Ormson", (size.width / 6), (size.height / 2) + 70)
     }
 
     fun drawBackground(g: Graphics) {
@@ -122,12 +164,13 @@ abstract class Player(val color: Color) {
     var x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
     var y = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
     val spots = mutableListOf<Int>()
+    open var isPlayer = false
 
     abstract fun update()
     abstract fun draw(g: Graphics)
 }
 
-class BotPlayer(a: Float = 1.0f) : Player(randomColor(a)) {
+class BotPlayer : Player(randomColor()) {
     var dx = 0
     var dy = -1
     var tick = 0
@@ -146,7 +189,8 @@ class BotPlayer(a: Float = 1.0f) : Player(randomColor(a)) {
         players.forEach {
             if (it != this && it.spots.contains(spot)) {
                 isDead = true
-                it.score++
+                if (it.isPlayer)
+                    it.score++
             }
         }
         if (!spots.contains(spot))
@@ -159,14 +203,15 @@ class BotPlayer(a: Float = 1.0f) : Player(randomColor(a)) {
     }
 }
 
-fun randomColor(a: Float): Color {
+fun randomColor(): Color {
     val r = ThreadLocalRandom.current().nextFloat()
     val g = ThreadLocalRandom.current().nextFloat()
     val b = ThreadLocalRandom.current().nextFloat()
-    return Color(r, g, b, a)
+    return Color(r, g, b)
 }
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
+    override var isPlayer = true
     override fun update() {
         x = Math.max(1, Math.min(input.dx + x, BOARD_WIDTH - 2))
         y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 2))
