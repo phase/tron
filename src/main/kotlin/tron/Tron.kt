@@ -32,6 +32,7 @@ fun main(args: Array<String>) {
     start.isVisible = true
     start.addActionListener{ _:ActionEvent ->
         game!!.state = Game.State.PLAYING
+        player.score = 0
         player.isDead = false
         player.spots.clear()
         player.x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
