@@ -23,25 +23,29 @@ fun main(args: Array<String>) {
     val player = UserPlayer(inputListener)
     frame.addKeyListener(inputListener)
 
-    for (i in 1..6) {
+    for (i in 1..8) {
         players.add(BotPlayer())
     }
-    game = StartScreen()
+    players.add(player)
+    game = Game(player)
 
     frame.add(game)
     frame.isVisible = true
     game!!.paint(game!!.graphics)
     fixedRateTimer(name = "MainThread", period = 100) {
-        refreshPlayers()
-        if (players.size == 1){
-            for (i in 1..6) {
-                players.add(BotPlayer())
+        if (player.isDead && game!!.state == Game.State.PLAYING) {
+            println("Game over")
+            game!!.state = Game.State.GAME_OVER
+            players = mutableListOf()
+            (1..8).forEach {
+                players.add(BotPlayer(0.65f))
             }
         }
+        refreshPlayers()
     }
 }
 
-fun refreshPlayers(){
+fun refreshPlayers() {
     val playersToRemove = mutableListOf<Player>()
     players.forEach {
         if (it.isDead)
@@ -49,45 +53,40 @@ fun refreshPlayers(){
     }
     playersToRemove.forEach {
         players.remove(it)
+        players.add(BotPlayer())
     }
     players.forEach(Player::update)
     game!!.repaint()
 }
 
-class StartScreen : Game() {
-
-    override fun paintComponent(g: Graphics) {
-        super.backColor = Color.black
-        super.lineColor = Color(211,211,211)
-        super.paintComponent(g)
-        g.color = Color.white
-        g.fillRect((size.width / 12), (size.height / 6), ((5 * size.width) /6), ((2 * size.height) / 3))
-        g.color = Color.black
-        g.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 200)
-        g.drawString("TRON", (size.width / 9), (size.height / 2))
-        g.font = Font("Lucidia Console", Font.PLAIN, 30)
-        g.drawString("Jadon Fowler", (size.width / 6), (size.height / 2) + 35)
-        g.drawString("Matthew Ormson", (size.width / 6), (size.height / 2) + 70)
+class Game(val mainPlayer: Player) : JComponent() {
+    enum class State {
+        PLAYING,
+        GAME_OVER
     }
 
-    override fun drawBackground(g: Graphics) {
-        super.drawBackground(g)
-    }
-
-}
-
-abstract class Game : JComponent() {
     var backColor = Color.black
     var lineColor = Color.lightGray
+    var state = State.PLAYING
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         drawBackground(g)
         drawTails(g)
+        if (state == State.PLAYING) {
+            g.color = Color.white
+            g.font = Font(null, 0, 10)
+            g.drawString("Score: ${mainPlayer.score}", 15, 18)
+        } else {
+            g.color = Color.white
+            g.font = Font(null, 0, 50)
+            g.drawString("GAME OVER", 50, 50)
+            g.drawString("Score: ${mainPlayer.score}", 100, 100)
+        }
         players.forEach { it.draw(g) }
     }
 
-    open fun drawBackground(g: Graphics) {
+    fun drawBackground(g: Graphics) {
         g.color = backColor
         g.fillRect(0, 0, size.width, size.height)
         (0..BOARD_WIDTH).forEach {
@@ -97,7 +96,8 @@ abstract class Game : JComponent() {
             g.drawLine(0, p, SIZE, p)
         }
     }
-    open fun drawTails(g: Graphics){
+
+    fun drawTails(g: Graphics) {
         (0..BOARD_WIDTH).forEach {
             val px = it * 20 - 1
             val x = it
@@ -117,6 +117,7 @@ abstract class Game : JComponent() {
 }
 
 abstract class Player(val color: Color) {
+    var score = 0
     var isDead = false
     var x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
     var y = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
@@ -126,7 +127,7 @@ abstract class Player(val color: Color) {
     abstract fun draw(g: Graphics)
 }
 
-class BotPlayer : Player(randomColor()) {
+class BotPlayer(a: Float = 1.0f) : Player(randomColor(a)) {
     var dx = 0
     var dy = -1
     var tick = 0
@@ -143,8 +144,10 @@ class BotPlayer : Player(randomColor()) {
 
         val spot = y * BOARD_WIDTH + x
         players.forEach {
-            if (it != this && it.spots.contains(spot))
+            if (it != this && it.spots.contains(spot)) {
                 isDead = true
+                it.score++
+            }
         }
         if (!spots.contains(spot))
             spots.add(spot)
@@ -156,11 +159,11 @@ class BotPlayer : Player(randomColor()) {
     }
 }
 
-fun randomColor(): Color {
+fun randomColor(a: Float): Color {
     val r = ThreadLocalRandom.current().nextFloat()
     val g = ThreadLocalRandom.current().nextFloat()
     val b = ThreadLocalRandom.current().nextFloat()
-    return Color(r, g, b)
+    return Color(r, g, b, a)
 }
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
@@ -169,8 +172,10 @@ class UserPlayer(val input: UserInput) : Player(Color.red) {
         y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 2))
         val spot = y * BOARD_WIDTH + x
         players.forEach {
-            if (it != this && it.spots.contains(spot))
+            if (it != this && it.spots.contains(spot)) {
                 isDead = true
+                it.score++
+            }
         }
         if (!spots.contains(spot))
             spots.add(spot)
