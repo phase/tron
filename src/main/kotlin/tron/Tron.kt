@@ -103,11 +103,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         drawBackground(g)
         drawTails(g)
         players.forEach { it.draw(g) }
-        if (state == State.PLAYING) {
-            g.color = Color.white
-            g.font = Font(null, 0, 16)
-//            g.drawString("Score: ${mainPlayer.score}", mainPlayer.x * 20 + 5, mainPlayer.y * 20 - 5)
-        } else if (state == State.GAME_OVER) {
+        if (state == State.GAME_OVER) {
             drawTitle(g)
             g.color = Color.red
             g.font = Font(null, 0, 50)
@@ -116,7 +112,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
             g.font = Font(null, 0, 30)
             if (mainPlayer.score > highScore)
                 highScore = mainPlayer.score
-            g.drawString("High Score: ${highScore}", 180, 625)
+            g.drawString("High Score: $highScore", 180, 625)
             start.isVisible = true
             start.text = "Start"
         } else if (state == State.START) {
@@ -200,7 +196,6 @@ class BotPlayer : Player(randomColor()) {
         if (tick % ThreadLocalRandom.current().nextInt(3, 6) == 0) {
             dx = ThreadLocalRandom.current().nextInt(-1, 2)
             dy = if (dx != 0) 0 else ThreadLocalRandom.current().nextInt(-1, 2)
-
         }
         x = Math.max(1, Math.min(dx + x, BOARD_WIDTH - 2))
         y = Math.max(1, Math.min(dy + y, BOARD_WIDTH - 2))
