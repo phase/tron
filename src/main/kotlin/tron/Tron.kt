@@ -164,7 +164,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
                             g.color = Color(red.toInt(), green.toInt(), blue.toInt())
 
                             // Remove dead cells
-                            val darknessThreshold = 20
+                            val darknessThreshold = 100
                             if (red < darknessThreshold && blue < darknessThreshold && green < darknessThreshold)
                                 player.spots.remove(spot)
                         }
