@@ -3,7 +3,6 @@ package tron
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics
-import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.util.concurrent.ThreadLocalRandom
@@ -30,7 +29,7 @@ fun main(args: Array<String>) {
     start.isFocusable = false
     start.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 32)
     start.isVisible = true
-    start.addActionListener { _: ActionEvent ->
+    start.addActionListener { _ ->
         // Reset game
         game!!.state = Game.State.PLAYING
         player.score = 0
@@ -41,7 +40,7 @@ fun main(args: Array<String>) {
         inputListener.dx = 0
         inputListener.dy = -1
         players.clear()
-        for (i in 1..8) {
+        for (i in 1..6) {
             players.add(BotPlayer())
         }
         players.add(player)
@@ -107,7 +106,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         if (state == State.PLAYING) {
             g.color = Color.white
             g.font = Font(null, 0, 16)
-            g.drawString("Score: ${mainPlayer.score}", 15, 18)
+//            g.drawString("Score: ${mainPlayer.score}", mainPlayer.x * 20 + 5, mainPlayer.y * 20 - 5)
         } else if (state == State.GAME_OVER) {
             drawTitle(g)
             g.color = Color.red
@@ -119,7 +118,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
                 highScore = mainPlayer.score
             g.drawString("High Score: ${highScore}", 180, 625)
             start.isVisible = true
-            start.text = "Restart"
+            start.text = "Start"
         } else if (state == State.START) {
             drawTitle(g)
         }
@@ -154,10 +153,25 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
             (0..BOARD_WIDTH).forEach {
                 val py = it * 20 - 1
                 val y = it
-
+                val spot = y * BOARD_WIDTH + x
                 players.forEach {
-                    if (it.spots.contains(y * BOARD_WIDTH + x)) {
-                        g.color = it.color
+                    if (it.spots.contains(spot)) {
+                        val player = it
+                        // Reverse the index
+                        val index = player.spots.size - player.spots.indexOf(spot)
+                        g.color = player.color
+                        (0..index).forEach {
+                            val decayConstant = Math.min(0.92 + (if (player is UserPlayer) player.score * .001 else 0.0), 0.999)
+                            val red = Math.min(g.color.red * decayConstant, 255.0)
+                            val green = Math.min(g.color.green * decayConstant, 255.0)
+                            val blue = Math.min(g.color.blue * decayConstant, 255.0)
+                            g.color = Color(red.toInt(), green.toInt(), blue.toInt())
+
+                            // Remove dead cells
+                            val darknessThreshold = 20
+                            if (red < darknessThreshold && blue < darknessThreshold && green < darknessThreshold)
+                                player.spots.remove(spot)
+                        }
                         g.fillRect(px - 10, py - 10, 20, 20)
                     }
                 }
@@ -234,7 +248,8 @@ class UserPlayer(val input: UserInput) : Player(Color.red) {
 
     override fun draw(g: Graphics) {
         g.color = Color.white
-        g.drawRoundRect(x * 20 - 6 - 3, y * 20 - 6, 6 * 2, 6 * 2, 7, 5)
+        g.font = Font(null, 0, if (score > 9) 14 else 16)
+        g.drawString("$score", x * 20 - 7 - (if (score > 9) 4 else 0), y * 20 + 5)
     }
 }
 
