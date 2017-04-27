@@ -219,10 +219,10 @@ class BotPlayer : Player(randomColor()) {
 }
 
 fun randomColor(): Color {
-    val r = ThreadLocalRandom.current().nextFloat()
-    val g = ThreadLocalRandom.current().nextFloat()
-    val b = ThreadLocalRandom.current().nextFloat()
-    return Color(r, g, b)
+    val r = Math.min(ThreadLocalRandom.current().nextDouble() + .3, 1.0)
+    val g = Math.min(ThreadLocalRandom.current().nextDouble() + .3, 1.0)
+    val b = Math.min(ThreadLocalRandom.current().nextDouble() + .3, 1.0)
+    return Color(r.toFloat(), g.toFloat(), b.toFloat())
 }
 
 class UserPlayer(val input: UserInput) : Player(Color.red) {
