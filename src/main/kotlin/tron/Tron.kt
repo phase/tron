@@ -127,8 +127,8 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         g.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 200)
         g.drawString("TRON", (size.width / 9), (size.height / 2))
         g.font = Font("Lucidia Console", Font.PLAIN, 30)
-        g.drawString("Jadon Fowler", (size.width / 6), (size.height / 2) + 35)
-        g.drawString("Matthew Ormson", (size.width / 6), (size.height / 2) + 70)
+//        g.drawString("Jadon Fowler", (size.width / 6), (size.height / 2) + 35)
+//        g.drawString("Matthew Ormson", (size.width / 6), (size.height / 2) + 70)
     }
 
     fun drawBackground(g: Graphics) {
