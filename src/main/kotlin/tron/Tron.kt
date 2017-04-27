@@ -95,7 +95,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
     }
 
     var backColor: Color = Color.black
-    var lineColor: Color = Color.lightGray
+    var lineColor: Color = Color.darkGray
     var state = State.START
 
     override fun paintComponent(g: Graphics) {
