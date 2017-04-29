@@ -187,6 +187,8 @@ abstract class Player(val color: Color) {
 }
 
 class BotPlayer : Player(randomColor()) {
+    var prevdx = 0
+    var prevdy = -1
     var dx = 0
     var dy = -1
     var tick = 0
@@ -196,9 +198,16 @@ class BotPlayer : Player(randomColor()) {
         if (tick % ThreadLocalRandom.current().nextInt(3, 6) == 0) {
             dx = ThreadLocalRandom.current().nextInt(-1, 2)
             dy = if (dx != 0) 0 else ThreadLocalRandom.current().nextInt(-1, 2)
+            if (prevdx == 0 && dx == 0)
+                dy = prevdy
+            if (prevdy == 0 && dy == 0)
+                dx = prevdx
         }
         x = Math.max(1, Math.min(dx + x, BOARD_WIDTH - 2))
         y = Math.max(1, Math.min(dy + y, BOARD_WIDTH - 2))
+
+        prevdx = dx
+        prevdy = dy
 
         val spot = y * BOARD_WIDTH + x
         players.forEach {
