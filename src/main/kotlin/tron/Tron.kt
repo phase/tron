@@ -164,7 +164,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
                             g.color = Color(red.toInt(), green.toInt(), blue.toInt())
 
                             // Remove dead cells
-                            val darknessThreshold = 20
+                            val darknessThreshold = 75
                             if (red < darknessThreshold && blue < darknessThreshold && green < darknessThreshold)
                                 player.spots.remove(spot)
                         }
@@ -202,7 +202,7 @@ class BotPlayer : Player(randomColor()) {
 
         val spot = y * BOARD_WIDTH + x
         players.forEach {
-            if (it != this && it.spots.contains(spot)) {
+            if (it.spots.contains(spot)) {
                 isDead = true
                 if (it is UserPlayer)
                     it.score++
@@ -233,7 +233,7 @@ class UserPlayer(val input: UserInput) : Player(Color.red) {
         y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 2))
         val spot = y * BOARD_WIDTH + x
         players.forEach {
-            if (it != this && it.spots.contains(spot)) {
+            if (it.spots.contains(spot)) {
                 isDead = true
             }
         }
@@ -256,20 +256,28 @@ class UserInput : KeyListener {
         e?.let {
             when (it.keyCode) {
                 KeyEvent.VK_W, KeyEvent.VK_UP -> {
-                    dx = 0
-                    dy = -1
+                    if (dx != 0 && dy != 1){
+                        dx = 0
+                        dy = -1
+                    }
                 }
                 KeyEvent.VK_S, KeyEvent.VK_DOWN -> {
-                    dx = 0
-                    dy = 1
+                    if (dx != 0 && dy != -1){
+                        dx = 0
+                        dy = 1
+                    }
                 }
                 KeyEvent.VK_A, KeyEvent.VK_LEFT -> {
-                    dx = -1
-                    dy = 0
+                    if (dx != 1 && dy != 0){
+                        dx = -1
+                        dy = 0
+                    }
                 }
                 KeyEvent.VK_D, KeyEvent.VK_RIGHT -> {
-                    dx = 1
-                    dy = 0
+                    if (dx != -1 && dy != 0){
+                        dx = 1
+                        dy = 0
+                    }
                 }
             }
         }
