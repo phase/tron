@@ -11,6 +11,7 @@ import javax.swing.JComponent
 import javax.swing.JFrame
 import kotlin.concurrent.fixedRateTimer
 
+//initialize global variables
 val SIZE = 795
 val BOARD_WIDTH = SIZE / 20 + 1
 var game: Game? = null
@@ -19,6 +20,7 @@ val start: JButton = JButton("Begin")
 var highScore = 0
 
 fun main(args: Array<String>) {
+    //set JFrame and JButton properties
     val frame = JFrame("it's tron")
     val inputListener = UserInput()
     val player = UserPlayer(inputListener)
@@ -30,7 +32,7 @@ fun main(args: Array<String>) {
     start.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 32)
     start.isVisible = true
     start.addActionListener { _ ->
-        // Reset game
+        //resets game
         game!!.state = Game.State.PLAYING
         player.score = 0
         player.isDead = false
@@ -61,6 +63,8 @@ fun main(args: Array<String>) {
     frame.isResizable = false
     frame.isVisible = true
     game!!.paint(game!!.graphics)
+
+    //initialize game thread that refreshes every millisecond
     fixedRateTimer(name = "MainThread", period = 100) {
         if (player.isDead && game!!.state == Game.State.PLAYING) {
             game!!.state = Game.State.GAME_OVER
@@ -73,6 +77,7 @@ fun main(args: Array<String>) {
     }
 }
 
+//removes dead bots and replaces them each with a new bot
 fun refreshPlayers() {
     val playersToRemove = mutableListOf<Player>()
     players.forEach {
@@ -87,6 +92,7 @@ fun refreshPlayers() {
     game!!.repaint()
 }
 
+//class for painting graphics on frame
 class Game(val mainPlayer: UserPlayer) : JComponent() {
     enum class State {
         PLAYING,
@@ -103,6 +109,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         drawBackground(g)
         drawTails(g)
         players.forEach { it.draw(g) }
+        //draws different graphics based on the state of the game
         if (state == State.GAME_OVER) {
             drawTitle(g)
             g.color = Color.red
@@ -120,6 +127,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         }
     }
 
+    //title screen
     fun drawTitle(g: Graphics) {
         g.color = Color.white
         g.fillRect((size.width / 12), (size.height / 6), ((5 * size.width) / 6), ((2 * size.height) / 3))
@@ -127,10 +135,9 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         g.font = Font("Lucidia Console", Font.ITALIC + Font.BOLD, 200)
         g.drawString("TRON", (size.width / 9), (size.height / 2))
         g.font = Font("Lucidia Console", Font.PLAIN, 30)
-        g.drawString("Jadon Fowler", (size.width / 6), (size.height / 2) + 35)
-        g.drawString("Matthew Ormson", (size.width / 6), (size.height / 2) + 70)
     }
 
+    //background grid
     fun drawBackground(g: Graphics) {
         g.color = backColor
         g.fillRect(0, 0, size.width, size.height)
@@ -142,6 +149,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
         }
     }
 
+    //tails, player score, and fading color
     fun drawTails(g: Graphics) {
         (0..BOARD_WIDTH).forEach {
             val px = it * 20 - 1
@@ -153,7 +161,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
                 players.forEach {
                     if (it.spots.contains(spot)) {
                         val player = it
-                        // Reverse the index
+                        //reverse the index
                         val index = player.spots.size - player.spots.indexOf(spot)
                         g.color = player.color
                         (0..index).forEach {
@@ -163,7 +171,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
                             val blue = Math.min(g.color.blue * decayConstant, 255.0)
                             g.color = Color(red.toInt(), green.toInt(), blue.toInt())
 
-                            // Remove dead cells
+                            //remove dead cells
                             val darknessThreshold = 75
                             if (red < darknessThreshold && blue < darknessThreshold && green < darknessThreshold)
                                 player.spots.remove(spot)
@@ -176,6 +184,7 @@ class Game(val mainPlayer: UserPlayer) : JComponent() {
     }
 }
 
+//abstraction for any player
 abstract class Player(val color: Color) {
     var isDead = false
     var x = ThreadLocalRandom.current().nextInt(2, BOARD_WIDTH - 3)
@@ -186,6 +195,7 @@ abstract class Player(val color: Color) {
     abstract fun draw(g: Graphics)
 }
 
+//functionality for bot
 class BotPlayer : Player(randomColor()) {
     var prevdx = 0
     var prevdy = -1
@@ -194,6 +204,7 @@ class BotPlayer : Player(randomColor()) {
     var tick = 0
 
     override fun update() {
+        //simple algorithm for "AI" movement
         tick++
         if (tick % ThreadLocalRandom.current().nextInt(3, 6) == 0) {
             dx = ThreadLocalRandom.current().nextInt(-1, 2)
@@ -209,6 +220,7 @@ class BotPlayer : Player(randomColor()) {
         prevdx = dx
         prevdy = dy
 
+        //determines death and user score
         val spot = y * BOARD_WIDTH + x
         players.forEach {
             if (it.spots.contains(spot)) {
@@ -226,7 +238,6 @@ class BotPlayer : Player(randomColor()) {
         g.drawRoundRect(x * 20 - 6 - 3, y * 20 - 6, 6 * 2, 6 * 2, 7, 5)
     }
 }
-
 fun randomColor(): Color {
     val r = Math.min(ThreadLocalRandom.current().nextDouble() + .3, 1.0)
     val g = Math.min(ThreadLocalRandom.current().nextDouble() + .3, 1.0)
@@ -241,6 +252,8 @@ class UserPlayer(val input: UserInput) : Player(Color.red) {
         x = Math.max(1, Math.min(input.dx + x, BOARD_WIDTH - 2))
         y = Math.max(1, Math.min(input.dy + y, BOARD_WIDTH - 2))
         val spot = y * BOARD_WIDTH + x
+
+        //determines death
         players.forEach {
             if (it.spots.contains(spot)) {
                 isDead = true
@@ -261,6 +274,7 @@ class UserInput : KeyListener {
     var dx = 0
     var dy = -1
 
+    //key event that won't allow you to go backwards (otherwise you'd hit your own trail and die)
     override fun keyPressed(e: KeyEvent?) {
         e?.let {
             when (it.keyCode) {
